@@ -8,15 +8,14 @@
     <script src="bwtc.min.js"></script>
     <script>
 
-function Buff(str, letters) {
+function Buff(str) {
   this.str = str;
   this.length = str.length;
-  this.letters = letters;
   this.index = 0;
   this.ok = true;
 }
 Buff.prototype.read = function () {
-  return this.letters[this.str[this.index] + 1];
+  return this.str[this.index];
 };
 Buff.prototype.move = function () {
   this.index += 1;
@@ -62,8 +61,9 @@ xhr.open('get', 'compressed.data', true);
 xhr.responseType = 'arraybuffer';
 xhr.onload = function () {
   console.log('decopmressing');
-  var arr = bwtc.dec(new Uint8Array(xhr.response));
-  var buff = new Buff(arr, 'a()bceidńsykąhgojmunęwózltżrpćśłfvxźq');
+  var decoder = new TextDecoder('utf-8');
+  var str = decoder.decode(bwtc.dec(new Uint8Array(xhr.response)));
+  var buff = new Buff(str);
   console.log('unserializing');
   var tree = unserialize_dict_tree(buff);
   console.log(tree);

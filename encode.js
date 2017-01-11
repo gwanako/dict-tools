@@ -41,29 +41,12 @@ const tree2str = (node) => {
   return str;
 };
 
-const str2uint8 = (chars, str) => {
-  // const ws = /\s/;
-  const arr = new Uint8Array(str.length);
-  let letter = 0;
-  let pos = 0;
-  for (const ch of str) {
-    // if (ws.test(ch)) {
-    //   continue;
-    // }
-    arr[pos++] = chars[ch] || (chars[ch] = ++letter);
-  }
-  return arr;
-};
-
 fs.readFile('dict.json', 'utf8', function (err, str) {
-  str = tree2str(list2tree(JSON.parse(str)));
-  const chars = {};
-  const arr = str2uint8(chars, str);
-  fs.writeFile('chars.txt', Object.keys(chars).join(''), function (err) {
-    if (err) throw err;
-  });
-  var data = Buffer.from(bwtc.enc(arr));
-  fs.writeFile('compressed.data', data, function (err) {
-    if (err) throw err;
-  });
+  fs.writeFile(
+    'compressed.data',
+    Buffer.from(bwtc.enc(Buffer.from(tree2str(list2tree(JSON.parse(str))), 'utf8'))),
+    function (err) {
+      if (err) throw err;
+    }
+  );
 });

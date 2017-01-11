@@ -7,5 +7,4 @@
 
   2. Place JSON-encoded words list under `dict.json`.
   3. Run `node encode.js`.
-  4. Copy contents of `chars.txt` to `index.html`.
-  5. Open `index.html` from server (like `nws`).
+  4. Open `index.html` from server (like `nws`).
