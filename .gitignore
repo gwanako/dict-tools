@@ -35,3 +35,9 @@ jspm_packages
 
 # Optional REPL history
 .node_repl_history
+
+bwtc.js
+bwtc.min.js
+chars.txt
+dict.json
+compressed.data

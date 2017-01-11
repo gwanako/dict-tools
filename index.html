@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>dict-tools</title>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <script src="bwtc.min.js"></script>
+    <script>
+
+function Buff(str, letters) {
+  this.str = str;
+  this.length = str.length;
+  this.letters = letters;
+  this.index = 0;
+  this.ok = true;
+}
+Buff.prototype.read = function () {
+  return this.letters[this.str[this.index] + 1];
+};
+Buff.prototype.move = function () {
+  this.index += 1;
+  this.ok = this.index < this.length;
+};
+
+function unserialize_dict_tree_walk(buff) {
+  var ch = buff.read();
+  if (ch !== '(') {
+    return { '_': true };
+  }
+  var node = {};
+  buff.move();
+  ch = buff.read();
+  if (ch === '(') {
+    node._ = true;
+    buff.move();
+    ch = buff.read();
+  }
+  while (ch !== ')') {
+    buff.move();
+    node[ch] = unserialize_dict_tree_walk(buff);
+    ch = buff.read();
+  }
+  return node;
+};
+
+function unserialize_dict_tree(buff) {
+  var root = {};
+  while (buff.ok) {
+    var ch = buff.read();
+    buff.move();
+    if (/\s/.test(ch)) {
+      break;
+    }
+    root[ch] = unserialize_dict_tree_walk(buff);
+  }
+  return root;
+};
+
+var xhr = new XMLHttpRequest();
+xhr.open('get', 'compressed.data', true);
+xhr.responseType = 'arraybuffer';
+xhr.onload = function () {
+  console.log('decopmressing');
+  var arr = bwtc.dec(new Uint8Array(xhr.response));
+  var buff = new Buff(arr, 'a()bceidńsykąhgojmunęwózltżrpćśłfvxźq');
+  console.log('unserializing');
+  var tree = unserialize_dict_tree(buff);
+  console.log(tree);
+};
+console.log('loading file');
+xhr.send();
+
+    </script>
+  </body>
+</html>
