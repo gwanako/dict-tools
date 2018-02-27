@@ -41,12 +41,14 @@ const tree2str = (node) => {
   return str;
 };
 
-fs.readFile('dict.json', 'utf8', function (err, str) {
-  fs.writeFile(
-    'compressed.data',
-    Buffer.from(bwtc.enc(Buffer.from(tree2str(list2tree(JSON.parse(str))), 'utf8'))),
-    function (err) {
-      if (err) throw err;
-    }
-  );
-});
+const encode = (input, output) => {
+  fs.readFile(input, 'utf8', (err, str) => {
+    const list = JSON.parse(str);
+    const tree = list2tree(list);
+    const str = tree2str(tree);
+    const strBuff = Buffer.from(str, 'utf8');
+    const compressedArr = bwtc.enc(strBuff);
+    const compressedBuff = Buffer.from(compressedArr);
+    fs.writeFile(output, compressedBuff);
+  });
+};
