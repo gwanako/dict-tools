@@ -5,9 +5,11 @@ import util from 'util';
 const list = [
   'aaa',
   'aab',
+  'aaaaa',
   'aa',
   'ad',
   'bb',
+  'b',
 ];
 
 const root = tools.list2tree(list);
@@ -15,7 +17,8 @@ const list2 = tools.tree2list(root);
 console.log(util.isDeepStrictEqual(list, list2));
 
 // add weights weights to dict-tree
-const total = tools.weights(root, 2, 3);
+const total = tools.weights(root, word => word.length == 2 || word.length == 3);
+// const total = tools.weights(root);
 
 // prapare map for counting random words
 const stats = {};

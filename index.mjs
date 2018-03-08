@@ -17,25 +17,25 @@ export function list2tree(list) {
 };
 
 export function tree2list(root) {
-    const total = weights(root);
-    const list = [];
-    for (let index = 0; index < total; index += 1) {
-      const word = select(root, index);
-      list.push(word);
-    }
-    return list;
+  const total = weights(root);
+  const list = [];
+  for (let index = 0; index < total; index += 1) {
+    const word = select(root, index);
+    list.push(word);
+  }
+  return list;
 };
 
 // module for adding weights to dict-tree
-export function weights(node, min = 0, max = 100, level = 0) {
+export function weights(node, predicate = () => true, word = '') {
   let total = 0;
   for (const ch in node) {
   	if (ch === '_') {
-    	if (level >= min && level <= max) {
+    	if (predicate(word)) {
       	total += 1;
       }
     } else if (ch !== '$') {
-      total += weights(node[ch], min, max, level + 1);
+      total += weights(node[ch], predicate, word + ch);
     }
   }
   return node.$ = total;
@@ -68,10 +68,10 @@ export function charEncode(node) {
     const substr = charEncode(subnode);
     str += ch;
     if (!substr) {
-	    str += ';';
+      str += ';';
     } else {
       if (subnode._) {
-	   	  str += ',';
+     	  str += ',';
       }
       str += substr + '.';
     }
