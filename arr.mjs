@@ -1,61 +1,69 @@
-export function check(arr, word) {
-  // TODO make map ch => num
-  // TODO change word into array of nums + last num
-  // the map could probably be extraced from arr
-  let index = 0;
-  let node = 0;
-  for (const ch of word.substr(0, -1)) {
-    node = find_ch_node(arr, index, ch);
-    if (!has_next(node)) {
-      return false;
-    }
-    index = get_next(node);
+export function check(arr, offset, ch_map, word) {
+  const { head, last_ch } = map_word(ch_map, word);
+  let value;
+  for (const ch of head) {
+    value = find_ch(arr, offset, ch);
+    // if (!has_next(value)) {
+    //   return false;
+    // }
+    offset = get_next(value);
   }
-  node = find_ch_node(arr, index, word[word.length - 1]);
-  return is_final(node);
+  value = find_ch(arr, offset, last_ch);
+  return is_final(value);
 }
 
-function find_ch_node(arr, index, ch) {
-  let node = arr[index];
-  let node_ch = get_ch(node);
-  let index_ch = 0;
-  while (node_ch !== ch) {
-    if (node_ch < ch) {
-      if (!has_left(node)) {
+function find_ch(arr, offset, ch) {
+  let value = arr[offset];
+  let value_ch = get_ch(value);
+  let offset_ch = 0;
+  while (value_ch !== ch) {
+    if (value_ch < ch) {
+      if (!has_left(value)) {
         return false;
       }
-      index_ch = index_ch * 2 + 1;
+      offset_ch = offset_ch * 2 + 1;
     } else {
-      if (!has_right(node)) {
+      if (!has_right(value)) {
         return false;
       }
-      index_ch = index_ch * 2 + 2;
+      offset_ch = offset_ch * 2 + 2;
     }
-    node = arr[index + index_ch];
-    node_ch = get_ch(node);
+    value = arr[offset + offset_ch];
+    value_ch = get_ch(value);
   }
-  return node;
+  return value;
 }
 
-function get_ch(node) {
-  return node & 255; // 0000 0000 0000 0000 0000 0000 1111 1111
-}
-function has_left(node) {
-  return node & 256; // 0000 0000 0000 0000 0000 0001 0000 0000
-}
-function has_right(node) {
-  return node & 512; // 0000 0000 0000 0000 0000 0010 0000 0000
-}
-function is_final(node) {
-  return node & 1024; // 0000 0000 0000 0000 0000 0100 0000 0000
-}
-function has_next(node) {
-  return node & 2048; // 0000 0000 0000 0000 0000 1000 0000 0000
-}
-function get_next(node) {
-  return node >>> 12; // 0000 0000 0000 0000 0000 xxxx xxxx xxxx
+function get_ch(value) {
+  return value & 255; // 0000 0000 0000 0000 0000 0000 1111 1111
 }
 
-function wordToEnums(word) {
+function has_left(value) {
+  return value & 256; // 0000 0000 0000 0000 0000 0001 0000 0000
+}
 
+function has_right(value) {
+  return value & 512; // 0000 0000 0000 0000 0000 0010 0000 0000
+}
+
+function is_final(value) {
+  return value & 1024; // 0000 0000 0000 0000 0000 0100 0000 0000
+}
+
+// function has_next(value) {
+//   return value & 2048; // 0000 0000 0000 0000 0000 1000 0000 0000
+// }
+
+function get_next(value) {
+  return value >>> 12; // 0000 0000 0000 0000 0000 xxxx xxxx xxxx
+}
+
+function map_word(ch_map, word) {
+  const last_index = word.length - 1;
+  const head = [];
+  for (let i = 0; i < last_index; i += 1) {
+    head.push(ch_map[word[i]]);
+  }
+  const last_ch = ch_map[word[last_index]];
+  return { head, last_ch };
 }
