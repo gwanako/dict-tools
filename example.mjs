@@ -3,18 +3,23 @@ import util from 'util';
 
 // list
 const list = [
-  'aaa',
-  'aab',
-  'aaaaa',
-  'aa',
-  'ad',
+  'abcde',
+  'abc',
+  'abd',
+  'ab',
+  'adb',
   'bb',
   'b',
+  'cda',
+  'cdb',
+  'cdc',
 ];
 
 const root = tools.list2tree(list);
+
+// check if converting back works
 const list2 = tools.tree2list(root);
-console.log(util.isDeepStrictEqual(list, list2));
+console.log(util.isDeepStrictEqual(list.sort(), list2.sort()));
 
 // add weights weights to dict-tree
 const total = tools.weights(root, word => word.length == 2 || word.length == 3);
@@ -41,6 +46,9 @@ for (const word in stats) {
 }
 
 const encoded = tools.charEncode(root);
-const decoded = tools.charDecode(encoded);
 console.log(encoded);
-console.log(util.isDeepStrictEqual(root, decoded));
+const decoded = tools.charDecode(encoded);
+console.log(util.isDeepStrictEqual(
+  tools.tree2list(root).sort(),
+  tools.tree2list(decoded).sort()
+));

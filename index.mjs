@@ -65,16 +65,7 @@ export function charEncode(node) {
     	continue;
     }
     const subnode = node[ch];
-    const substr = charEncode(subnode);
-    str += ch;
-    if (!substr) {
-      str += ';';
-    } else {
-      if (subnode._) {
-     	  str += ',';
-      }
-      str += substr + '.';
-    }
+    str += ch + charEncode(subnode) + (subnode._ ? ';' : ',');
   }
   return str;
 }
@@ -85,15 +76,10 @@ export function charDecode(str) {
   };
   for (const ch of str) {
   	switch (ch) {
-    	case ',':
-      	top.node._ = true;
-        break;
-    	case ';':
-      	top.node._ = true;
-      	top = top.back;
-        break;
-    	case '.':
-      	top = top.back;
+      case ';':
+        top.node._ = true;
+      case ',':
+        top = top.back;
         break;
     	default:
         top = {
