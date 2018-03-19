@@ -1,69 +1,104 @@
-export function check(arr, offset, ch_map, word) {
-  const { head, last_ch } = map_word(ch_map, word);
-  let value;
-  for (const ch of head) {
-    value = find_ch(arr, offset, ch);
-    // if (!has_next(value)) {
-    //   return false;
-    // }
-    offset = get_next(value);
+const setFlag = (bin, flag, on = true) => on ? bin | flag : bin & ~flag;
+
+const VAL_MASK_CH     = 255;  // 0000 0000 0000 0000 0000 0000 1111 1111
+const VAL_FLAG_LEFT   = 256;  // 0000 0000 0000 0000 0000 0001 0000 0000
+const VAL_FLAG_RIGHT  = 512;  // 0000 0000 0000 0000 0000 0010 0000 0000
+const VAL_FLAG_FINAL  = 1024; // 0000 0000 0000 0000 0000 0100 0000 0000
+const VAL_OFFSET_NEXT = 12;   // 0000 0000 0000 0000 0000 xxxx xxxx xxxx
+
+const getSymbol = bin => bin & VAL_MASK_CH;
+const hasLeft   = bin => !!(bin & VAL_FLAG_LEFT);
+const hasRight  = bin => !!(bin & VAL_FLAG_RIGHT);
+const isFinal   = bin => !!(bin & VAL_FLAG_FINAL);
+const getNext   = bin => bin >>> VAL_OFFSET_NEXT;
+
+const setSymbol = (bin, num = 0) => bin & ~VAL_MASK_CH | num;
+const setLeft   = (bin, on = true) => setFlag(bin, VAL_FLAG_LEFT, on);
+const setRight  = (bin, on = true) => setFlag(bin, VAL_FLAG_RIGHT, on);
+const setFinal  = (bin, on = true) => setFlag(bin, VAL_FLAG_FINAL, on);
+const setNext   = (bin, num = 0) => bin | num << VAL_OFFSET_NEXT;
+
+export function checkWord(arr, offset, map, word) {
+  const lead = Array.from(word).map(char => map[char]);
+  const last = lead.pop();
+  let index = offset;
+  for (const symbol of lead) {
+    index = getNext(findSymbol(arr, index, symbol));
   }
-  value = find_ch(arr, offset, last_ch);
-  return is_final(value);
+  return isFinal(findSymbol(arr, index, last));
 }
 
-function find_ch(arr, offset, ch) {
-  let value = arr[offset];
-  let value_ch = get_ch(value);
-  let offset_ch = 0;
-  while (value_ch !== ch) {
-    if (value_ch < ch) {
-      if (!has_left(value)) {
+function findSymbol(arr, offset, symbol) {
+  let heapOffset = 0;
+  let bin = arr[offset];
+  let binSymbol = getSymbol(bin);
+  while (binSymbol !== symbol) {
+    if (binSymbol < symbol) {
+      if (!hasLeft(bin)) {
         return false;
       }
-      offset_ch = offset_ch * 2 + 1;
+      heapOffset = heapOffset * 2 + 1;
     } else {
-      if (!has_right(value)) {
+      if (!hasRight(bin)) {
         return false;
       }
-      offset_ch = offset_ch * 2 + 2;
+      heapOffset = heapOffset * 2 + 2;
     }
-    value = arr[offset + offset_ch];
-    value_ch = get_ch(value);
+    bin = arr[offset + heapOffset];
+    binSymbol = getSymbol(bin);
   }
-  return value;
+  return bin;
 }
 
-function get_ch(value) {
-  return value & 255; // 0000 0000 0000 0000 0000 0000 1111 1111
-}
 
-function has_left(value) {
-  return value & 256; // 0000 0000 0000 0000 0000 0001 0000 0000
-}
-
-function has_right(value) {
-  return value & 512; // 0000 0000 0000 0000 0000 0010 0000 0000
-}
-
-function is_final(value) {
-  return value & 1024; // 0000 0000 0000 0000 0000 0100 0000 0000
-}
-
-// function has_next(value) {
-//   return value & 2048; // 0000 0000 0000 0000 0000 1000 0000 0000
-// }
-
-function get_next(value) {
-  return value >>> 12; // 0000 0000 0000 0000 0000 xxxx xxxx xxxx
-}
-
-function map_word(ch_map, word) {
-  const last_index = word.length - 1;
-  const head = [];
-  for (let i = 0; i < last_index; i += 1) {
-    head.push(ch_map[word[i]]);
+function charDecodeToArr(str, map) {
+  const maxSize = 30 + 1; // TODO
+  const arr = new Uint32Array(10000); // TODO
+  const buff = [];
+  let prev = null;
+  let node = new Uint32Array(maxSize);
+  let offset = 0;
+  let level = 0;
+  let highestLevel = 0;
+  node[0] = 1;
+  buff[0] = node;
+  for (const char of str) {
+  	switch (char) {
+      case ';':
+        prev[prev[0]] |= VAL_FLAG_FINAL;
+      case ',':
+        const size = node[node[0]];
+        if (size > 1) {
+          prev[prev[0]] |= offset << VAL_OFFSET_NEXT;
+          fillArr(arr, offset, node, size);
+          offset += size;
+        }
+        level -= 1;
+        node = prev;
+        prev = buff[level]; // -1 at root
+        break;
+    	default:
+        node[node[0]] = map[char];
+        node[0] += 1;
+        level += 1;
+        prev = node;
+        if (level > highestLevel) {
+          node = new Uint32Array(maxSize);
+          buff[level] = node;
+          highestLevel += 1;
+        } else {
+          node = buff[level];
+        }
+        node[0] = 1;
+    }
   }
-  const last_ch = ch_map[word[last_index]];
-  return { head, last_ch };
+  offset = getNext(buff[0][1]);
+  return { arr, offset };
+}
+
+function fillArr(arr, offset, node, size) {
+  // TODO: heap
+  for (let i = 0; i < size - 1; i += 1) {
+    arr[offset + i] = node[i + 1];
+  }
 }
